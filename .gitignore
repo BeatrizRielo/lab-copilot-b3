@@ -1,0 +1,19 @@
+# .NET
+bin/
+obj/
+*.user
+*.db
+*.db-shm
+*.db-wal
+api-out.log
+api-err.log
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+
+# IDE
+.vs/
+.idea/
+*.suo

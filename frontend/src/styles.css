@@ -1,0 +1,71 @@
+:root {
+  --azul: #0b3d91;
+  --verde: #087f5b;
+  --vermelho: #c92a2a;
+  --cinza: #f1f3f5;
+  --borda: #dee2e6;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f8f9fa;
+  color: #212529;
+}
+
+header {
+  background: var(--azul);
+  color: #fff;
+  padding: 16px 24px;
+}
+
+header h1 { margin: 0; font-size: 20px; }
+header small { opacity: 0.8; }
+
+.container { max-width: 1000px; margin: 0 auto; padding: 24px; }
+
+.tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.tabs button {
+  border: 1px solid var(--borda);
+  background: #fff;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.tabs button.active { background: var(--azul); color: #fff; border-color: var(--azul); }
+
+.card {
+  background: #fff;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--borda); }
+th { font-size: 13px; text-transform: uppercase; color: #868e96; }
+
+form { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+label { display: flex; flex-direction: column; font-size: 13px; gap: 4px; }
+input, select {
+  padding: 8px;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  min-width: 120px;
+}
+
+button.primary { background: var(--azul); color: #fff; border: none; padding: 9px 16px; border-radius: 6px; cursor: pointer; }
+button.danger { background: none; color: var(--vermelho); border: none; cursor: pointer; }
+
+.positivo { color: var(--verde); font-weight: 600; }
+.negativo { color: var(--vermelho); font-weight: 600; }
+
+.erro { background: #fff5f5; color: var(--vermelho); border: 1px solid #ffc9c9; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; }
+
+.resumo-cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.resumo-cards .box { flex: 1; min-width: 160px; background: var(--cinza); border-radius: 8px; padding: 12px; }
+.resumo-cards .box span { display: block; font-size: 13px; color: #868e96; }
+.resumo-cards .box strong { font-size: 20px; }
