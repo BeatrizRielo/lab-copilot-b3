@@ -76,3 +76,6 @@ Veja o [**Guia do Participante**](docs/guia-participante.md) com os 4 blocos de 
 ## 📌 Notas
 - Banco **SQLite** recriado e populado (seed) a cada inicialização — sem configuração externa.
 - Cotações são **simuladas** (`CotacaoSimuladaProvider`) para o cálculo de P&L.
+
+## 📌 Participantes - Add nome completo
+

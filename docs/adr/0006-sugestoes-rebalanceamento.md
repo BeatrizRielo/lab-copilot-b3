@@ -1,0 +1,67 @@
+# 0006 — Sugestões de rebalanceamento da carteira
+
+- **Status:** Proposto
+- **Data:** 2026-07-20
+- **Decisores:** Time do Lab B3
+- **Relacionado:** [Constituição — Artigos III e VII](../../.specify/memory/constitution.md), [specs/001-carteira-regras](../../specs/001-carteira-regras/spec.md), [ADR 0005](0005-preco-medio-e-pl.md)
+
+## Contexto
+A carteira já calcula posição e resultado (P&L), mas não orienta o investidor sobre
+**concentração de risco**. Uma carteira muito concentrada em uma classe (ex.: 60% em
+ações) ou em poucos ativos aumenta a exposição e foge da estratégia-alvo do investidor.
+
+Precisamos de uma feature que:
+- detecte concentração excessiva por **classe de ativo** (Ação, FII, ETF);
+- **sugira ajustes** (reduzir os que estão acima do alvo, aumentar os abaixo);
+- estime o **custo do rebalanceamento** (corretagem + IR), para o investidor decidir
+  se vale a pena;
+- permita, futuramente, comparar a **sugestão automática** contra a decisão **manual**
+  do usuário (experimento A/B).
+
+O lab usa cotações simuladas (`ICotacaoProvider`) e não modela regras tributárias reais.
+A solução precisa ser simples, determinística e testável, coerente com a Constituição.
+
+## Decisão
+- **Algoritmo simples baseado em percentual-alvo por classe.** A alocação-alvo por
+  classe é **configurável** (`appsettings.json`), com padrão `Ações 50% / FII 30% / ETF 20%`
+  e **tolerância** padrão de `±5%`. Uma classe fora da faixa `[alvo − tolerância, alvo + tolerância]`
+  é sinalizada como concentração excessiva ou subalocação.
+- **Sugestão por maior desvio primeiro.** Classes acima do alvo geram sugestão de
+  **reduzir**; classes abaixo do alvo geram sugestão de **aumentar**. Dentro da classe,
+  prioriza-se o ativo de maior desvio de peso na carteira.
+- **Custo de rebalanceamento com parâmetros simplificados e configuráveis:**
+  - **Corretagem fixa por ordem** (padrão `R$ 0,00`, configurável).
+  - **IR de 15% sobre o lucro estimado na venda**: `lucro = (precoAtual − precoMedio) × qtdVendida`,
+    aplicado apenas quando `lucro > 0`.
+  - Custo total = soma das corretagens das ordens sugeridas + IR estimado das vendas.
+- **Regras de negócio no Service.** A lógica vive em um novo `RebalanceamentoService`
+  em `Services/`; o controller apenas delega (Artigo II). Cálculos de custo reutilizam
+  `PrecoMedio`/`PrecoAtual` já existentes (ADR 0005), sem duplicar regras de P&L.
+- **A/B test como experimento de fase futura.** A comparação entre sugestão automática
+  e decisão manual é **registrada como requisito/experimento**, mas sua implementação
+  (feature flag, coleta de métricas e análise) fica **fora do Sprint 25**.
+
+## Alternativas Consideradas
+- **Otimização de carteira (Markowitz / mean-variance):** teoricamente superior, porém
+  exige matriz de covariância, dados históricos e resolução numérica — complexo demais e
+  fora do escopo do lab. Rejeitada.
+- **Regras tributárias reais da B3** (day trade, isenção de FII, faixa de isenção de
+  R$ 20 mil/mês em ações, compensação de prejuízo): mais precisas, mas de alta
+  complexidade e manutenção. Rejeitada por ora; alíquota fixa de 15% é aproximação aceita.
+- **Alvo por ativo individual** em vez de por classe: mais granular, porém exige o
+  investidor definir peso-alvo de cada ticker. Rejeitada por atrito de configuração;
+  o alvo por classe é o ponto de partida.
+
+## Consequências
+### Positivas
+- Orientação acionável ao investidor com algoritmo simples, determinístico e testável.
+- Parâmetros configuráveis permitem adaptar estratégia sem alterar código.
+- Reaproveita cálculos existentes (preço médio, cotação), evitando duplicação (Artigo V).
+
+### Negativas / Trade-offs
+- IR de 15% fixo **não reflete** isenções e regras reais (FII, day trade, faixa de
+  isenção), podendo subestimar ou superestimar o custo real.
+- Alvo por classe ignora concentração **intra-classe** entre poucos ativos além do
+  desempate por desvio de peso.
+- O experimento A/B fica pendente; sem ele não há medição objetiva do valor da sugestão
+  automática até uma fase futura.

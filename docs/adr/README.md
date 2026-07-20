@@ -14,6 +14,7 @@ decisão relevante, seu contexto e consequências.
 | [0003](0003-validacao-ticker-centralizada.md) | Validação de ticker centralizada no TickerValidator | Aceito |
 | [0004](0004-spec-driven-development.md) | Adoção de Spec-Driven Development (Spec Kit) | Aceito |
 | [0005](0005-preco-medio-e-pl.md) | Preço médio ponderado e cálculo de P&L | Aceito |
+| [0006](0006-sugestoes-rebalanceamento.md) | Sugestões de rebalanceamento da carteira | Proposto |
 
 ## Status possíveis
 - **Proposto** — em discussão.
