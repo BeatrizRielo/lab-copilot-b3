@@ -36,6 +36,9 @@ export const api = {
 
   // Resumo
   resumo: () => fetch(`${BASE}/portfolio/resumo`).then(handle),
+
+  // Rebalanceamento
+  rebalanceamento: () => fetch(`${BASE}/rebalanceamento`).then(handle),
 }
 
 function post(body) {
