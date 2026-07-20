@@ -19,6 +19,7 @@ public class PortfolioContext : DbContext
         {
             e.Property(a => a.Ticker).IsRequired().HasMaxLength(10);
             e.Property(a => a.PrecoMedio).HasColumnType("decimal(18,2)");
+            e.Property(a => a.Version).IsConcurrencyToken();
             e.HasMany(a => a.Ordens)
              .WithOne(o => o.Ativo)
              .HasForeignKey(o => o.AtivoId)

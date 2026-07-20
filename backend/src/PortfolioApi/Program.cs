@@ -35,6 +35,9 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Cria o banco e popula dados de exemplo.
+// EnsureCreated() é adequado para o workshop (recria o schema conforme o modelo).
+// Para evolução controlada de schema em produção, migrar para EF Core Migrations
+// (dotnet ef migrations add / context.Database.Migrate()).
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<PortfolioContext>();

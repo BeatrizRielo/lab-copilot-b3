@@ -19,6 +19,12 @@ public class Ativo
     /// <summary>Preço médio de aquisição.</summary>
     public decimal PrecoMedio { get; set; }
 
+    /// <summary>
+    /// Token de concorrência otimista. Incrementado a cada alteração de posição
+    /// para detectar atualizações concorrentes (ordens simultâneas no mesmo ativo).
+    /// </summary>
+    public int Version { get; set; }
+
     public ICollection<Ordem> Ordens { get; set; } = new List<Ordem>();
 }
 

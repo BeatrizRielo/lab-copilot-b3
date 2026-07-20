@@ -1,9 +1,10 @@
 using PortfolioApi.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace PortfolioApi.Middleware;
 
 /// <summary>
-/// Converte exceções de domínio em respostas HTTP apropriadas (400/404).
+/// Converte exceções de domínio em respostas HTTP apropriadas (400/404/409).
 /// </summary>
 public class ExceptionHandlingMiddleware
 {
@@ -29,6 +30,11 @@ public class ExceptionHandlingMiddleware
         catch (RegraNegocioException ex)
         {
             await EscreverErro(context, StatusCodes.Status400BadRequest, ex.Message);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await EscreverErro(context, StatusCodes.Status409Conflict,
+                "O ativo foi alterado por outra operação. Tente novamente.");
         }
         catch (Exception ex)
         {
