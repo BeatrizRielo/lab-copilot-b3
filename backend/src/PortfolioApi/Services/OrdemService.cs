@@ -63,7 +63,38 @@ public class OrdemService
         var ordem = await _context.Ordens.FindAsync(id)
             ?? throw new NaoEncontradoException($"Ordem {id} não encontrada.");
 
+        var ativoId = ordem.AtivoId;
+
         _context.Ordens.Remove(ordem);
+        await _context.SaveChangesAsync();
+
+        // A exclusão de uma ordem invalida a posição acumulada do ativo;
+        // recalcula a posição reproduzindo as ordens restantes em ordem cronológica.
+        await RecalcularPosicaoAsync(ativoId);
+    }
+
+    /// <summary>
+    /// Recalcula quantidade e preço médio de um ativo a partir do zero,
+    /// reproduzindo todas as ordens restantes em ordem cronológica.
+    /// </summary>
+    private async Task RecalcularPosicaoAsync(int ativoId)
+    {
+        var ativo = await _context.Ativos.FindAsync(ativoId);
+        if (ativo is null)
+            return;
+
+        var ordens = await _context.Ordens
+            .Where(o => o.AtivoId == ativoId)
+            .OrderBy(o => o.Data)
+            .ThenBy(o => o.Id)
+            .ToListAsync();
+
+        ativo.Quantidade = 0;
+        ativo.PrecoMedio = 0m;
+
+        foreach (var o in ordens)
+            AtualizarPosicao(ativo, o);
+
         await _context.SaveChangesAsync();
     }
 
@@ -86,7 +117,15 @@ public class OrdemService
         else
         {
             ativo.Quantidade -= ordem.Quantidade;
+
+            // Zera o preço médio quando a posição é totalmente liquidada,
+            // evitando exibir um custo médio sem quantidade correspondente.
+            if (ativo.Quantidade == 0)
+                ativo.PrecoMedio = 0m;
         }
+
+        // Sinaliza alteração de posição para o controle de concorrência otimista.
+        ativo.Version++;
     }
 
     private static void ValidarEntrada(int quantidade, decimal preco)

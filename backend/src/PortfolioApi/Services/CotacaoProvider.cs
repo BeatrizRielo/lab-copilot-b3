@@ -11,6 +11,13 @@ public interface ICotacaoProvider
 
 public class CotacaoSimuladaProvider : ICotacaoProvider
 {
+    /// <summary>
+    /// Preço-base usado quando o ticker não possui cotação simulada cadastrada.
+    /// Mantido explícito para deixar claro que é um valor de fallback do mock,
+    /// e não uma cotação real de mercado.
+    /// </summary>
+    public const decimal CotacaoPadrao = 20.00m;
+
     private static readonly Dictionary<string, decimal> Cotacoes = new(StringComparer.OrdinalIgnoreCase)
     {
         ["PETR4"] = 38.00m,
@@ -22,10 +29,12 @@ public class CotacaoSimuladaProvider : ICotacaoProvider
 
     /// <summary>
     /// Retorna a cotação simulada do ticker. Se não houver cotação cadastrada,
-    /// devolve o preço-base padrão para não quebrar o cálculo do resumo.
+    /// devolve <see cref="CotacaoPadrao"/> para não quebrar o cálculo do resumo.
+    /// Numa integração real, um ticker sem cotação deveria lançar exceção ou
+    /// retornar um valor opcional (null) tratado pelo chamador.
     /// </summary>
     public decimal ObterCotacao(string ticker)
     {
-        return Cotacoes.TryGetValue(ticker, out var preco) ? preco : 20.00m;
+        return Cotacoes.TryGetValue(ticker, out var preco) ? preco : CotacaoPadrao;
     }
 }

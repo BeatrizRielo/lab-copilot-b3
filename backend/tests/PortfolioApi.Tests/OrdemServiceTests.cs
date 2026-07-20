@@ -77,4 +77,68 @@ public class OrdemServiceTests
         await Assert.ThrowsAsync<RegraNegocioException>(() =>
             service.CriarAsync(new OrdemCreateDto(ativo.Id, TipoOrdem.Compra, quantidade, preco, null)));
     }
+
+    [Fact]
+    public async Task Venda_TotalDaPosicao_ZeraPrecoMedio()
+    {
+        var (context, conn) = TestDb.CreateContext();
+        using var _ = conn;
+
+        var ativo = new Ativo { Ticker = "PETR4", Tipo = TipoAtivo.Acao, Quantidade = 100, PrecoMedio = 30m };
+        context.Ativos.Add(ativo);
+        await context.SaveChangesAsync();
+
+        var service = new OrdemService(context);
+        await service.CriarAsync(new OrdemCreateDto(ativo.Id, TipoOrdem.Venda, 100, 45m, null));
+
+        Assert.Equal(0, ativo.Quantidade);
+        Assert.Equal(0m, ativo.PrecoMedio);
+    }
+
+    [Fact]
+    public async Task Remover_RevertePosicaoDoAtivo()
+    {
+        var (context, conn) = TestDb.CreateContext();
+        using var _ = conn;
+
+        var ativo = new Ativo { Ticker = "PETR4", Tipo = TipoAtivo.Acao, Quantidade = 0, PrecoMedio = 0m };
+        context.Ativos.Add(ativo);
+        await context.SaveChangesAsync();
+
+        var service = new OrdemService(context);
+
+        // Compra 100 a 30 e depois 100 a 40 => 200 cotas, preço médio 35.
+        var primeira = await service.CriarAsync(
+            new OrdemCreateDto(ativo.Id, TipoOrdem.Compra, 100, 30m, DateTime.UtcNow.AddDays(-2)));
+        await service.CriarAsync(
+            new OrdemCreateDto(ativo.Id, TipoOrdem.Compra, 100, 40m, DateTime.UtcNow.AddDays(-1)));
+
+        Assert.Equal(200, ativo.Quantidade);
+        Assert.Equal(35m, ativo.PrecoMedio);
+
+        // Ao remover a primeira compra, a posição deve refletir apenas a segunda: 100 cotas a 40.
+        await service.RemoverAsync(primeira.Id);
+
+        Assert.Equal(100, ativo.Quantidade);
+        Assert.Equal(40m, ativo.PrecoMedio);
+    }
+
+    [Fact]
+    public async Task Remover_UnicaOrdem_ZeraPosicao()
+    {
+        var (context, conn) = TestDb.CreateContext();
+        using var _ = conn;
+
+        var ativo = new Ativo { Ticker = "PETR4", Tipo = TipoAtivo.Acao, Quantidade = 0, PrecoMedio = 0m };
+        context.Ativos.Add(ativo);
+        await context.SaveChangesAsync();
+
+        var service = new OrdemService(context);
+        var ordem = await service.CriarAsync(new OrdemCreateDto(ativo.Id, TipoOrdem.Compra, 100, 30m, null));
+
+        await service.RemoverAsync(ordem.Id);
+
+        Assert.Equal(0, ativo.Quantidade);
+        Assert.Equal(0m, ativo.PrecoMedio);
+    }
 }
