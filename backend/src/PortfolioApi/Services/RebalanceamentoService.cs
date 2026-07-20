@@ -51,10 +51,13 @@ public class RebalanceamentoService
 
         var tolerancia = _options.ToleranciaPercentual;
 
+        // 1ª passada: analisa cada classe (percentual atual, situação e valores).
+        // A lista de alocações segue a ordem configurada em AlvosPorClasse.
+        var analises = new List<AnaliseClasse>();
         foreach (var (classeNome, alvo) in _options.AlvosPorClasse)
         {
             if (!Enum.TryParse<TipoAtivo>(classeNome, out var tipo))
-                continue;
+                continue; // guard defensivo; config já validada no startup.
 
             var doClasse = posicoes.Where(p => p.Ativo.Tipo == tipo).ToList();
             var valorClasse = doClasse.Sum(p => p.ValorAtual);
@@ -67,17 +70,30 @@ public class RebalanceamentoService
                 : SituacaoClasse.Equilibrada;
 
             alocacoes.Add(new AlocacaoClasseDto(classeNome, percentualAtual, alvo, situacao));
+            analises.Add(new AnaliseClasse(alvo, percentualAtual, situacao, valorClasse, doClasse));
+        }
 
-            if (totalAtual == 0m)
-                continue;
+        // Carteira vazia / valor total zero: sem sugestões e custo zero (sem divisão por zero).
+        if (totalAtual == 0m)
+        {
+            var custoVazio = new CustoRebalanceamentoDto(0m, 0m, 0m);
+            return new RebalanceamentoDto(alocacoes, sugestoes, custoVazio);
+        }
 
-            var valorAlvo = alvo / 100m * totalAtual;
+        // 2ª passada: RN-006 / RF-008 — gera as sugestões priorizando as classes
+        // com o maior desvio (em pontos percentuais) em relação ao alvo.
+        var classesPorDesvio = analises
+            .OrderByDescending(a => Math.Abs(a.PercentualAtual - a.Alvo));
 
-            if (situacao == SituacaoClasse.Acima)
+        foreach (var analise in classesPorDesvio)
+        {
+            var valorAlvo = analise.Alvo / 100m * totalAtual;
+
+            if (analise.Situacao == SituacaoClasse.Acima)
             {
                 // Reduz o excesso começando pelo ativo de maior valor na classe.
-                var valorReduzir = valorClasse - valorAlvo;
-                foreach (var p in doClasse.OrderByDescending(x => x.ValorAtual))
+                var valorReduzir = analise.ValorClasse - valorAlvo;
+                foreach (var p in analise.Posicoes.OrderByDescending(x => x.ValorAtual))
                 {
                     if (valorReduzir <= 0m || p.Cotacao <= 0m)
                         continue;
@@ -102,11 +118,12 @@ public class RebalanceamentoService
                     valorReduzir -= qtd * p.Cotacao;
                 }
             }
-            else if (situacao == SituacaoClasse.Abaixo)
+            else if (analise.Situacao == SituacaoClasse.Abaixo)
             {
                 // Aumenta a alocação reforçando o ativo de maior valor na classe.
-                var valorAumentar = valorAlvo - valorClasse;
-                var alvoAtivo = doClasse.OrderByDescending(x => x.ValorAtual).FirstOrDefault();
+                // Requer ao menos um ativo já existente na classe para gerar a ordem.
+                var valorAumentar = valorAlvo - analise.ValorClasse;
+                var alvoAtivo = analise.Posicoes.OrderByDescending(x => x.ValorAtual).FirstOrDefault();
                 if (alvoAtivo is not null && alvoAtivo.Cotacao > 0m)
                 {
                     var qtd = (int)Math.Floor(valorAumentar / alvoAtivo.Cotacao);
@@ -125,4 +142,12 @@ public class RebalanceamentoService
     }
 
     private sealed record Posicao(Ativo Ativo, decimal Cotacao, decimal ValorAtual);
+
+    /// <summary>Resultado da análise de uma classe, usado para ordenar as sugestões por desvio.</summary>
+    private sealed record AnaliseClasse(
+        decimal Alvo,
+        decimal PercentualAtual,
+        SituacaoClasse Situacao,
+        decimal ValorClasse,
+        IReadOnlyList<Posicao> Posicoes);
 }

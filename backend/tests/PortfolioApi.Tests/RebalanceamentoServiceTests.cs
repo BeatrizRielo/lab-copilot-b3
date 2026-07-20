@@ -175,6 +175,28 @@ public class RebalanceamentoServiceTests
     }
 
     [Fact]
+    public async Task Sugestoes_PriorizamClasseDeMaiorDesvio_Primeiro()
+    {
+        var (context, conn) = TestDb.CreateContext();
+        using var _ = conn;
+        // Total 1000. ETF 50% (desvio 30, Acima), FII 10% (desvio 20), Ação 40% (desvio 10).
+        // Ordem por desvio: ETF > FII > Ação — independente da ordem em AlvosPorClasse.
+        context.Ativos.Add(new Ativo { Ticker = "PETR4", Tipo = TipoAtivo.Acao, Quantidade = 10, PrecoMedio = 40m });
+        context.Ativos.Add(new Ativo { Ticker = "MXRF11", Tipo = TipoAtivo.FII, Quantidade = 10, PrecoMedio = 10m });
+        context.Ativos.Add(new Ativo { Ticker = "BOVA11", Tipo = TipoAtivo.ETF, Quantidade = 5, PrecoMedio = 100m });
+        context.SaveChanges();
+
+        var cot = new CotacaoDicionario(new() { ["PETR4"] = 40m, ["MXRF11"] = 10m, ["BOVA11"] = 100m });
+        var service = CriarService(context, cot);
+        var resultado = await service.ObterSugestaoAsync();
+
+        // A classe de maior desvio (ETF) deve gerar a primeira sugestão.
+        var primeira = resultado.Sugestoes.First();
+        Assert.Equal("BOVA11", primeira.Ticker);
+        Assert.Equal(AcaoRebalanceamento.Reduzir, primeira.Acao);
+    }
+
+    [Fact]
     public async Task Sugestao_NuncaVendeAcimaDaPosicao()
     {
         var (context, conn) = TestDb.CreateContext();

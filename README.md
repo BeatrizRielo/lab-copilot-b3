@@ -64,7 +64,7 @@ App em: <http://localhost:5173> (o Vite faz proxy de `/api` para o backend).
 cd backend
 dotnet test
 ```
-
+   
 ---
 
 ## 🎯 Roteiro do workshop
@@ -78,4 +78,4 @@ Veja o [**Guia do Participante**](docs/guia-participante.md) com os 4 blocos de 
 - Cotações são **simuladas** (`CotacaoSimuladaProvider`) para o cálculo de P&L.
 
 ## 📌 Participantes - Add nome completo
-
+Ana Beatriz Costa
