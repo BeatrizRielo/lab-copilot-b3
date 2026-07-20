@@ -22,7 +22,16 @@ builder.Services.AddScoped<AtivoService>();
 builder.Services.AddScoped<OrdemService>();
 builder.Services.AddScoped<WatchlistService>();
 builder.Services.AddScoped<PortfolioService>();
+builder.Services.AddScoped<RebalanceamentoService>();
 builder.Services.AddSingleton<ICotacaoProvider, CotacaoSimuladaProvider>();
+builder.Services.AddOptions<RebalanceamentoOptions>()
+    .Bind(builder.Configuration.GetSection("Rebalanceamento"))
+    .Validate(options =>
+    {
+        options.Validate();
+        return true;
+    }, "Configuração de rebalanceamento inválida (seção 'Rebalanceamento').")
+    .ValidateOnStart();
 
 builder.Services.AddCors(options =>
 {

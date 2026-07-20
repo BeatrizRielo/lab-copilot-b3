@@ -37,6 +37,11 @@ A solução precisa ser simples, determinística e testável, coerente com a Con
 - **Regras de negócio no Service.** A lógica vive em um novo `RebalanceamentoService`
   em `Services/`; o controller apenas delega (Artigo II). Cálculos de custo reutilizam
   `PrecoMedio`/`PrecoAtual` já existentes (ADR 0005), sem duplicar regras de P&L.
+- **Visualização no frontend.** Uma nova aba **"Rebalanceamento"** (React) consome o
+  endpoint `GET /api/rebalanceamento` e exibe: tabela de alocação atual × alvo
+  por classe com a situação (equilibrada / abaixo / concentração excessiva), lista de
+  sugestões de ajuste (reduzir/aumentar) e o custo estimado (corretagem, IR e total).
+  A tela é apenas de leitura — não executa ordens automaticamente.
 - **A/B test como experimento de fase futura.** A comparação entre sugestão automática
   e decisão manual é **registrada como requisito/experimento**, mas sua implementação
   (feature flag, coleta de métricas e análise) fica **fora do Sprint 25**.

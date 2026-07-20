@@ -27,11 +27,20 @@ if (-not (Test-Path (Join-Path $frontend 'node_modules'))) {
     Pop-Location
 }
 
+$shell = Get-Command pwsh -ErrorAction SilentlyContinue
+if (-not $shell) {
+    $shell = Get-Command powershell -ErrorAction SilentlyContinue
+}
+
+if (-not $shell) {
+    throw "PowerShell não encontrado no PATH. Instale o PowerShell 7 (pwsh) ou use o Windows PowerShell (powershell.exe)."
+}
+
 Write-Host 'Iniciando backend (http://localhost:5000)...' -ForegroundColor Green
-Start-Process pwsh -ArgumentList '-NoExit', '-Command', "Set-Location '$backend'; dotnet run"
+Start-Process -FilePath $shell.Source -WorkingDirectory $backend -ArgumentList '-NoExit', '-Command', 'dotnet run'
 
 Write-Host 'Iniciando frontend (http://localhost:5173)...' -ForegroundColor Green
-Start-Process pwsh -ArgumentList '-NoExit', '-Command', "Set-Location '$frontend'; npm run dev"
+Start-Process -FilePath $shell.Source -WorkingDirectory $frontend -ArgumentList '-NoExit', '-Command', 'npm run dev'
 
 Write-Host ''
 Write-Host 'Aplicação iniciada em duas janelas separadas.' -ForegroundColor Yellow
