@@ -5,8 +5,13 @@ investimentos simples (ações, FIIs e ETFs) usada para praticar as capacidades 
 Copilot: **revisar código, gerar testes e refatorar**.
 
 > Esta é a branch **base/solução** — código limpo, testes verdes e app funcionando.
-> Durante o workshop, os participantes trabalham sobre uma branch com "defeitos propositais"
-> (ver [`docs/gabarito-erros.md`](docs/gabarito-erros.md)).
+> Durante o workshop, os participantes trabalham sobre uma branch com inclusão de
+> uma nova capacidade na aplicação, realizada por um Dev durante uma sprint. Essas
+> tasks estão em uma feature branch. O participante deve criar sua própria feature
+> branch com origem na branch com alterações, avaliar o que foi modificado e criado,
+> realizar o code review e commitar. Em seguida, no portal ou na IDE, deve criar um
+> Pull Request para `main` com review do Copilot, validar e verificar as considerações
+> do agent antes do merge (ver [`docs/guia-participante.md`](docs/guia-participante.md)).
 
 ---
 
@@ -64,7 +69,7 @@ App em: <http://localhost:5173> (o Vite faz proxy de `/api` para o backend).
 cd backend
 dotnet test
 ```
-
+   
 ---
 
 ## 🎯 Roteiro do workshop
@@ -76,3 +81,6 @@ Veja o [**Guia do Participante**](docs/guia-participante.md) com os 4 blocos de 
 ## 📌 Notas
 - Banco **SQLite** recriado e populado (seed) a cada inicialização — sem configuração externa.
 - Cotações são **simuladas** (`CotacaoSimuladaProvider`) para o cálculo de P&L.
+
+## 📌 Participantes - Add nome completo
+Ana Beatriz Costa
