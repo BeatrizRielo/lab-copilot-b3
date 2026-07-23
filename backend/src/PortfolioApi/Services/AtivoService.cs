@@ -81,11 +81,11 @@ public class AtivoService
         if (!TickerValidator.IsValid(ticker))
             throw new RegraNegocioException($"Ticker inválido: '{ticker}'. Use o padrão da B3 (ex.: PETR4, MXRF11).");
 
-        if (quantidade < 0)
-            throw new RegraNegocioException("Quantidade não pode ser negativa.");
+        if (quantidade <= 0)
+            throw new RegraNegocioException("Quantidade deve ser maior que zero.");
 
-        if (precoMedio < 0)
-            throw new RegraNegocioException("Preço médio não pode ser negativo.");
+        if (precoMedio <= 0)
+            throw new RegraNegocioException("Preço médio deve ser maior que zero.");
     }
 
     private static AtivoDto Map(Ativo a) => new(a.Id, a.Ticker, a.Tipo, a.Quantidade, a.PrecoMedio);

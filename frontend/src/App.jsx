@@ -3,12 +3,14 @@ import Ativos from './components/Ativos.jsx'
 import Ordens from './components/Ordens.jsx'
 import Watchlist from './components/Watchlist.jsx'
 import Resumo from './components/Resumo.jsx'
+import Rebalanceamento from './components/Rebalanceamento.jsx'
 
 const ABAS = [
   { id: 'resumo', label: 'Resumo' },
   { id: 'ativos', label: 'Ativos' },
   { id: 'ordens', label: 'Ordens' },
   { id: 'watchlist', label: 'Watchlist' },
+  { id: 'rebalanceamento', label: 'Rebalanceamento' },
 ]
 
 export default function App() {
@@ -37,6 +39,7 @@ export default function App() {
         {aba === 'ativos' && <Ativos />}
         {aba === 'ordens' && <Ordens />}
         {aba === 'watchlist' && <Watchlist />}
+        {aba === 'rebalanceamento' && <Rebalanceamento />}
       </div>
     </>
   )
